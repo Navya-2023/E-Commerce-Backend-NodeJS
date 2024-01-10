@@ -9,6 +9,6 @@
       "allowImportingTsExtensions": true,
       "noEmit": true,
     },
-    "include": ["src/**/*.ts","types/**/*.ts"],
+    "include": ["src/**/*.ts","types/**/*.ts", "src/router/supplierRouter.tts"],
     "exclude": ["node_modules", "dist"]
   }

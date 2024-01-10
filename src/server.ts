@@ -1,49 +1,75 @@
-import sequelize from '../src/config/sequelize-config.ts'
-import { Request, Response } from 'express';
-import express from 'express';
-import  EcSuppliers from './models/ec_suppliers.ts';
-import supplierRouter from './router/supplierRoutes.ts';
-import supplierLoginRouter from './router/userLogin.ts';
-import customerRouter from './router/customerRoutes.ts';
-import userLoginRouter from './router/userLogin.ts';
-import { middlewareExample1, middlewareExample2 } from './middleware/middlewareExample.ts';
+import express, { NextFunction, Express } from "express"; //here express gives a function
+import sequelize from "../src/config/sequelize-config.ts";
+import supplierRouter from "./router/supplierRouter.ts";
+import customerRouter from "./router/customerRouter.ts";
+import loginRouter from "./router/loginRouter.ts";
+import { Response, Request } from "express";
+import {
+  middleFirstExample,
+  middleSecondExample,
+} from "./middleware/middlewareExample.ts";
+import { verifyToken } from "./middleware/verifyJWT.ts";
+import { stopMongoDb } from "./services/mongodb.ts";
 
-const app = express();
-const port = process.env.PORT || 3000;
- 
-// Middleware to parse JSON in the request body
-app.use(express.urlencoded({ extended: true }));
+const app: Express = express(); //the return of express function is stored in app
+
+const port = 3000 || process.env.port; //process.env.port takes value in the environment file and use that here
+
+sequelize
+  .sync({ force: false }) // Set force to true to drop and recreate tables on every application start
+  .then(() => {
+    console.log("Database synced");
+  })
+  .catch((error) => {
+    console.error("Error syncing database:", error);
+  });
+
+app.use(express.urlencoded({ extended: true })); //to accept the encoded url
+
 app.use(express.json());
-sequelize.sync({force:false})  
 
-app.use((req,res,next)=>{
-  console.log("hi from middleware");
-  next();
-}) 
-
-interface CustomerRequest extends Request{
-  customProperty?:object;
-}
-// app.use((req:CustomerRequest,res,next)=>{
-//   middlewareExample1(req, res, next);
-// }) 
-
-// app.use((req,res,next)=>{
-//   middlewareExample2(req, res, next);
-// }) 
-
-
-
-app.get('/example',middlewareExample1,middlewareExample2,(req: CustomerRequest,res:Response)=>{
-  console.log('route handler handling request');
-  const customProperty=req.customProperty;
-  res.send(customProperty);
-})
-
- 
-app.use('',customerRouter);
-app.use('',supplierRouter);
- app.use(userLoginRouter);
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+// middleware
+// next function call the next endpoint
+app.use((req, res, next: NextFunction) => {
+  console.log("hello from middleware");
+  next(); // continue to the next middleware or router handler
 });
+
+//
+interface CustomerRequest extends Request {
+  customerProperty?: string;
+}
+//
+
+// app.use((req: Request, res: Response, next: NextFunction) => {
+//   middleFirstExample(req, res, next);
+// });
+
+// app.use((req, res, next: NextFunction) => {
+//   middleSecondExample(req, res, next);
+// });
+
+app.get("/middleware",middleFirstExample,middleSecondExample, (req: CustomerRequest, res: Response) => {
+  const customerProperty = req.customerProperty || "Not Available";
+  // console.log(`${customerProperty}`);
+  res.send(`${customerProperty}`);
+});
+
+app.use("/", loginRouter);
+app.use("/api/v1",middleFirstExample,middleSecondExample, supplierRouter);
+app.use("/api/v2", customerRouter);
+
+app.listen(port, () => {
+  console.log(`The port ${port} running`);
+});
+
+process.on("SIGINT",()=>
+{
+  sequelize.close();stopMongoDb();
+});
+process.on("exit",()=>
+{
+  sequelize.close();stopMongoDb();
+});
+
+
