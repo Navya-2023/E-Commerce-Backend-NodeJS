@@ -54,13 +54,17 @@ EcSuppliers.init(
     sequelize,
     modelName: 'EcSuppliers',
     tableName: 'ec_suppliers',
-    // hooks:{
-    //     beforeCreate: (user:EcSuppliers)=>{
-    //         const hashedPassword = bcrypt.hashSync(user.password,bcrypt.genSaltSync(10));
-    //         user.password=hashedPassword;
-    //     }
-    }
+    hooks:{
+        beforeCreate: (user:EcSuppliers)=>{
+            const hashedPassword = bcrypt.hashSync(user.password,bcrypt.genSaltSync(10));
+            user.password=hashedPassword;
+        }
+      },
+
+
   
-);
- 
+  
+    });
+    
+      
 export default EcSuppliers;

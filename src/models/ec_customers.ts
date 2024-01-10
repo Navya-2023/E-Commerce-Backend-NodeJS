@@ -2,6 +2,7 @@ import { Model, DataTypes } from 'sequelize';
 import sequelize  from '../config/sequelize-config';
 import bcrypt from 'bcrypt';
 import EcCustomers from '../../types/modelTypes/ec_customers';
+import EcSuppliers from './ec_suppliers';
  
 EcCustomers.init(
   {
@@ -54,13 +55,13 @@ EcCustomers.init(
     sequelize,
     modelName: 'EcCustomers',
     tableName: 'ec_customers',
-    // hooks:{
-    //     beforeCreate: (user:EcSuppliers)=>{
-    //         const hashedPassword = bcrypt.hashSync(user.password,bcrypt.genSaltSync(10));
-    //         user.password=hashedPassword;
-    //     }
+    hooks:{
+        beforeCreate: (user:EcSuppliers)=>{
+            const hashedPassword = bcrypt.hashSync(user.password,bcrypt.genSaltSync(10));
+            user.password=hashedPassword;
+        }
     }
-  
+  }
 );
  
 export default EcCustomers;
